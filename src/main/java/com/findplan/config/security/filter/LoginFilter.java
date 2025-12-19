@@ -76,8 +76,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		String refreshToken = jwtTokenProvider.createToken(authResult, TokenType.REFRESH);
 		String deviceInfo = request.getHeader("User-Agent");
 		String username = authResult.getName();
+		String ip = request.getRemoteAddr();
 		
-		memberDetailsService.saveAuthority(username, refreshToken, deviceInfo);
+		memberDetailsService.saveAuthority(username, refreshToken, deviceInfo, ip);
 		
 		ResponseCookie accessCookie = ResponseCookie.from("find_refresh_token", refreshToken)
 				.httpOnly(true)

@@ -39,9 +39,13 @@ public class Authority {
 	// 리프레시 토큰 정보
 	private String refreshToken;
 	
-	@Column(name = "device_info", length = 150, nullable = false)
+	@Column(name = "device_info", nullable = false)
 	// "User-Agent" 파싱후 결과값인 디바이스 정보
 	private String deviceInfo;
+	
+	@Column(name = "ip_address", length = 50, nullable = false)
+	// 아이피 정보
+	private String ip;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "code")

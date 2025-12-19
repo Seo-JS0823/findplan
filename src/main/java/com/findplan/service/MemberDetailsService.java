@@ -54,7 +54,7 @@ public class MemberDetailsService implements UserDetailsService {
 		return new MemberDetails(member);
 	}
 
-	public void saveAuthority(String username, String refreshToken, String deviceInfo) {
+	public void saveAuthority(String username, String refreshToken, String deviceInfo, String ip) {
 		Member member = memberRepository.findByEmail(username);
 		
 		Client c = uaParser.parse(deviceInfo);
@@ -72,6 +72,7 @@ public class MemberDetailsService implements UserDetailsService {
 		Authority authority = Authority.builder()
 				.deviceInfo(device)
 				.refreshToken(refreshToken)
+				.ip(ip)
 				.member(member)
 				.build();
 		
