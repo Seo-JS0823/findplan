@@ -3,9 +3,9 @@ package com.findplan.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.findplan.model.Member;
+import com.findplan.model.Authority;
 
 @Repository
-public interface MemberRepository extends JpaRepository<Member, Long> {
-	Member findByEmail(String email);
+public interface AuthorityRepository extends JpaRepository<Authority, Long> {
+
 }

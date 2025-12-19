@@ -1,30 +1,35 @@
 package com.findplan.model;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class MemberDetails implements UserDetails {
 	
 	private static final long serialVersionUID = 1L;
 
+	private final Member member;
+	
+	public MemberDetails(Member member) {
+		this.member = member;
+	}
+	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
-		return null;
+		return List.of(new SimpleGrantedAuthority("ROLE_" + member.getRole()));
 	}
 
 	@Override
 	public String getPassword() {
-		// TODO Auto-generated method stub
-		return null;
+		return member.getPassword();
 	}
 
 	@Override
 	public String getUsername() {
-		// TODO Auto-generated method stub
-		return null;
+		return member.getEmail();
 	}
 
 	@Override
