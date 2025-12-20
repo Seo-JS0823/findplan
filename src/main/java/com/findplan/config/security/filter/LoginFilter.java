@@ -15,9 +15,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.findplan.config.security.jwt.JwtTokenProvider;
 import com.findplan.config.security.jwt.TokenType;
 import com.findplan.service.MemberDetailsService;
+import com.findplan.transfer.AuthorityDto;
 import com.findplan.transfer.request.LoginRequest;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -76,30 +78,51 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		
 		String accessToken = jwtTokenProvider.createToken(authResult, TokenType.ACCESS);
 		String refreshToken = jwtTokenProvider.createToken(authResult, TokenType.REFRESH);
-		String deviceInfo = request.getHeader("User-Agent");
 		String username = authResult.getName();
+		String deviceInfo = request.getHeader("User-Agent");
+		
+		Cookie[] cookies = request.getCookies();
+		
+		String deviceId = "";
+		
+		for(Cookie cookie : cookies) {
+			if("X-find-device".equals(cookie.getName())) {
+				deviceId = cookie.getValue();
+				System.out.println("디바이스 ID : " + deviceId);
+				break;
+			}
+		}
+		
 		String ip = request.getRemoteAddr();
-		memberDetailsService.saveAuthority(username, refreshToken, deviceInfo, ip);
-		
-		ResponseCookie accessCookie = ResponseCookie.from("find_refresh_token", refreshToken)
-				.httpOnly(true)
-				.secure(true)
-				.sameSite("strict")
-				.path("/")
-				.maxAge(60 * 30)
+		AuthorityDto authorityDto = AuthorityDto.builder()
+				.deviceInfo(deviceInfo)
+				.deviceId(deviceId)
+				.refreshToken(refreshToken)
+				.ip(ip)
 				.build();
 		
-		ResponseCookie refreshCookie = ResponseCookie.from("find_access_token", accessToken)
-				.httpOnly(true)
-				.secure(true)
-				.sameSite("strict")
-				.path("/")
-				.maxAge(60 * 60 * 24 * 7)
-				.build();
+		String device = memberDetailsService.saveAuthority(username, refreshToken, authorityDto);
 		
-		response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-		response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-		
+		if(!device.isBlank()) {
+			ResponseCookie refreshCookie = ResponseCookie.from("find_access_token", accessToken)
+					.httpOnly(true)
+					.secure(false)
+					.sameSite("strict")
+					.path("/")
+					.maxAge(60 * 60 * 24 * 7)
+					.build();
+			
+			ResponseCookie deviceCookie = ResponseCookie.from("X-find-device", device)
+					.httpOnly(true)
+					.secure(false)
+					.sameSite("strict")
+					.maxAge(60 * 60 * 24 * 360)
+					.build();
+			
+			response.addHeader(HttpHeaders.AUTHORIZATION, accessToken);
+			response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+			response.addHeader(HttpHeaders.SET_COOKIE, deviceCookie.toString());
+		}
 		objectMapper.writeValue(response.getWriter(), Map.of(
 			"location", "/home"
 		));

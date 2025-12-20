@@ -24,5 +24,4 @@ public class MemberApi {
 		return ResponseEntity.ok(memberService.signin(request));
 	}
 	
-	
 }

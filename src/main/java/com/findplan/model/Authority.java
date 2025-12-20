@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /*
  * 2025-12-20
@@ -28,6 +29,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
+@ToString
 public class Authority {
 	
 	@Id
@@ -47,8 +49,11 @@ public class Authority {
 	// 아이피 정보
 	private String ip;
 	
+	@Column(name = "device_id", length = 80, nullable = false)
+	private String deviceId;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "code")
+	@JoinColumn(name = "code", nullable = false)
 	private Member member;
 	
 }

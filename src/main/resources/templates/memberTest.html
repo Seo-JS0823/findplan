@@ -23,6 +23,7 @@
 		const nickname = document.getElementById('nickname').value;
 		
 		fetch('/signin', {
+			credentials:'include',
 			method: 'POST',
 			headers: {
 				'Content-Type':'application/json'
@@ -43,6 +44,7 @@
 		const password = document.getElementById('login-password').value;
 		
 		fetch('/login', {
+			credentials:'include',
 			method:'POST',
 			headers: {
 				'Content-Type':'application/json'
