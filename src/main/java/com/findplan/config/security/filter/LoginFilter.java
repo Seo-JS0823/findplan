@@ -54,6 +54,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		try {
 			LoginRequest loginDto = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
 			
+			System.out.println(loginDto);
+			
 			UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
 				loginDto.getEmail(),
 				loginDto.getPassword()
@@ -77,7 +79,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		String deviceInfo = request.getHeader("User-Agent");
 		String username = authResult.getName();
 		String ip = request.getRemoteAddr();
-		
 		memberDetailsService.saveAuthority(username, refreshToken, deviceInfo, ip);
 		
 		ResponseCookie accessCookie = ResponseCookie.from("find_refresh_token", refreshToken)
