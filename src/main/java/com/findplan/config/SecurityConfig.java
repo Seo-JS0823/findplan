@@ -2,8 +2,6 @@ package com.findplan.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,41 +11,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.findplan.config.security.filter.JwtFilter;
-import com.findplan.config.security.filter.LoginFilter;
-import com.findplan.config.security.jwt.JwtTokenProvider;
-import com.findplan.service.MemberDetailsService;
+import com.findplan.auth.JwtFilter;
+import com.findplan.auth.JwtTokenProvider;
+import com.findplan.auth.MemberDetailsService;
 
-/*
- * 2025-12-20
- * Security 설정 정보
- * 
- * Seo-JS0823
- */
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
 	private final JwtTokenProvider jwtTokenProvider;
 	
 	private final MemberDetailsService memberDetailsService;
 	
-	private final AuthenticationConfiguration authenticationConfiguration;
-	
-	public SecurityConfig(
-			JwtTokenProvider jwtTokenProvider, 
-			MemberDetailsService memberDetailsService,
-			AuthenticationConfiguration authenticationConfiguration) {
-		this.jwtTokenProvider = jwtTokenProvider;
-		this.memberDetailsService = memberDetailsService;
-		this.authenticationConfiguration = authenticationConfiguration;
-	}
-	
 	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		
-		AuthenticationManager authenticationManager = authenticationManager(authenticationConfiguration);
-		
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 		.csrf(AbstractHttpConfigurer::disable)
 		.cors(AbstractHttpConfigurer::disable)
@@ -56,17 +36,9 @@ public class SecurityConfig {
 		.formLogin(AbstractHttpConfigurer::disable)
 		.httpBasic(AbstractHttpConfigurer::disable)
 		.authorizeHttpRequests(auth -> auth
-			.requestMatchers("/**").permitAll()
-			.anyRequest().authenticated())
-		.addFilterAt(
-			new LoginFilter(authenticationManager, jwtTokenProvider, memberDetailsService),
-			UsernamePasswordAuthenticationFilter.class
-		)
-		.addFilterBefore(
-			jwtFilter(),
-			UsernamePasswordAuthenticationFilter.class
-		);
-		
+				.requestMatchers("/**").permitAll()
+				.anyRequest().authenticated())
+		.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 		
 		return http.build();
 	}
@@ -74,11 +46,6 @@ public class SecurityConfig {
 	@Bean
 	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
-	}
-	
-	@Bean
-	AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-		return configuration.getAuthenticationManager();
 	}
 	
 	@Bean

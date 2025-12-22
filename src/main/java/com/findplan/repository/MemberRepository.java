@@ -1,11 +1,17 @@
 package com.findplan.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.findplan.model.Member;
+import com.findplan.entity.Member;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
-	Member findByEmail(String email);
+	Optional<Member> findByEmail(String email);
+	
+	boolean existsByEmail(String email);
+	
+	boolean existsByNickname(String nickname);
 }

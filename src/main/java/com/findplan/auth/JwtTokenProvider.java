@@ -1,4 +1,4 @@
-package com.findplan.config.security.jwt;
+package com.findplan.auth;
 
 import java.util.Date;
 
@@ -15,24 +15,16 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
-/*
- * 2025-12-20
- * JWT Token 생성, 검증 담당 객체
- * 
- * Seo-JS0823
- */
 @Component
 public class JwtTokenProvider {
-	// JWT SecretKey
+
 	private final SecretKey key;
 	
-	// application.yml -> jwt.secret DI
 	public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
 		this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
 	}
 	
-	public String createToken(Authentication authentication, TokenType tokenType) {
-		String username = authentication.getName();
+	public String createToken(String username, TokenType tokenType) {
 		return jwtsCompact(username, tokenType);
 	}
 	
@@ -48,7 +40,6 @@ public class JwtTokenProvider {
 				.compact();
 	}
 	
-	// 토큰에서 Member::email 가져오기
 	public String getUsernameFromToken(String token) {
 		return Jwts.parser()
 				.verifyWith(key)
@@ -70,6 +61,7 @@ public class JwtTokenProvider {
       System.out.println("잘못된 JWT 서명입니다. : " + e.getMessage());
 	  } catch (ExpiredJwtException e) {
 	      System.out.println("만료된 JWT Token: " + e.getMessage());
+	      return false;
 	  } catch (UnsupportedJwtException e) {
 	      System.out.println("지원하지 않는 JWT Token: " + e.getMessage());
 	  }

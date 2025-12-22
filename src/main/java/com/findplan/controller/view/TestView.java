@@ -4,11 +4,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class TestController {
+public class TestView {
+
+	@GetMapping("/")
+	public String branchView() {
+		return "branch";
+	}
 	
-	@GetMapping("/member/test")
+	@GetMapping("/test/member")
 	public String memberTest() {
-		return "memberTest";
+		return "test/member";
 	}
 	
 }
