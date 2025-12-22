@@ -2,6 +2,8 @@ package com.findplan.transfer.response;
 
 import java.util.Map;
 
+import com.findplan.utility.CookieName;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Setter;
@@ -42,9 +44,9 @@ public class AuthResponse {
 	private Map<String, String> newLogin() {
 		return Map.of(
 			"location", location,
-			"X-find-device", device,
-			"Authorization", accessToken,
-			"RefreshToken", refreshToken
+			CookieName.DEVICE.getName(), device,
+			CookieName.AUTHORIZATION.getName(), accessToken,
+			CookieName.REFRESH_TOKEN.getName(), refreshToken
 		);
 	}
 	
@@ -52,8 +54,8 @@ public class AuthResponse {
 	private Map<String, String> oldLoginRefresh() {
 		return Map.of(
 			"location", location,
-			"Authorization", accessToken,
-			"RefreshToken", refreshToken
+			CookieName.AUTHORIZATION.getName(), accessToken,
+			CookieName.REFRESH_TOKEN.getName(), refreshToken
 		);
 	}
 	
@@ -61,7 +63,7 @@ public class AuthResponse {
 	private Map<String, String> oldLoginNotRefresh() {
 		return Map.of(
 			"location", location,
-			"Autorization", accessToken
+			CookieName.AUTHORIZATION.getName(), accessToken
 		);
 	}
 	

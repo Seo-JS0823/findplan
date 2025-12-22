@@ -14,14 +14,16 @@ import com.findplan.transfer.request.MemberRequest;
 import com.findplan.transfer.response.AuthResponse;
 import com.findplan.transfer.response.ErrorCode;
 import com.findplan.utility.CookieName;
-import com.findplan.utility.CookieParser;
+import com.findplan.utility.CookieUtil;
 import com.findplan.utility.UserAgentParser;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MemberService {
 	private final MemberRepository memberRepository;
 	
@@ -34,9 +36,11 @@ public class MemberService {
 	public Map<String, String> signin(MemberRequest request) {
 		boolean dupliEmail = memberRepository.existsByEmail(request.getEmail());
 		boolean dupliNickname = memberRepository.existsByNickname(request.getNickname());
+		boolean deletedMember = memberRepository.existMember(request.getEmail());
 		
 		if(dupliEmail) return ErrorCode.DUPLI_EMAIL.getResponse();
 		if(dupliNickname) return ErrorCode.DUPLI_NICKNAME.getResponse();
+		if(deletedMember) return ErrorCode.DELETE_MEMBER.getResponse();
 		
 		Member member = request.toSigninEntity(passwordEncoder);
 		
@@ -56,6 +60,10 @@ public class MemberService {
 		memberRequest.setUserAgent(request.getHeader("User-Agent"));
 		memberRequest.setIp(request.getRemoteAddr());
 		
+		// 이미 탈퇴 처리된 이메일인지 검증, 실패시 에러코드 응답
+		boolean deletedMember = memberRepository.existMember(memberRequest.getEmail());
+		if(deletedMember) return ErrorCode.DELETE_MEMBER.getResponse();
+		
 		// 아이디, 패스워드 검증, 실패시 에러코드 응답
 		Member loginMember = memberRepository.findByEmail(memberRequest.getEmail()).orElse(null);
 		if(loginMember == null) return ErrorCode.NOT_FOUND_EMAIL.getResponse();
@@ -68,7 +76,7 @@ public class MemberService {
 		if(!passwordMatch) return ErrorCode.PASSWORD_NOT_MATCH.getResponse();
 		
 		// 쿠키에서 Device-ID 추출하고 새 기기에서 로그인 한 것인지 판단
-		String deviceId = CookieParser.getCookieValue(request, CookieName.DEVICE);
+		String deviceId = CookieUtil.getCookieValue(request, CookieName.DEVICE);
 		boolean loginDeviceExists = memberDeviceService.loginDeviceExists(loginMember.getCode(), deviceId);
 		
 		// 새로운 기기에서 로그인 했을 시 newLogin 메소드 호출
@@ -76,7 +84,7 @@ public class MemberService {
 		
 		// 기존 기기에서 로그인 했을 시 oldLogin 메소드 호출
 		else {
-			String refreshToken = CookieParser.getCookieValue(request, CookieName.REFRESH_TOKEN);
+			String refreshToken = CookieUtil.getCookieValue(request, CookieName.REFRESH_TOKEN);
 			return oldLogin(refreshToken, loginMember, deviceId);
 		}
 	}
@@ -131,6 +139,35 @@ public class MemberService {
 				.location("/home")
 				.accessToken(accessToken)
 				.build().getResponse();
+	}
+	
+	public Map<String, String> memberUpdate(MemberRequest memberRequest) {
+		Member member = memberRepository.findByEmail(memberRequest.getEmail()).orElse(null);
+		if(member == null) return ErrorCode.NOT_FOUND_EMAIL.getResponse();
+		
+		// 요청 데이터에 비밀번호가 다르면 비밀번호 변경 로직
+		String password = memberRequest.getPassword();
+		boolean updatedPassword = passwordEncoder.matches(password, member.getPassword());
+		if(!updatedPassword) member.updatePassword(passwordEncoder.encode(password));
+		
+		// 요청 데이터에 닉네임이 다르면 닉네임 변경 로직
+		String nickname = memberRequest.getNickname();
+		boolean updatedNickname = nickname.equals(member.getNickname());
+		if(!updatedNickname) {
+			member.updateNickname(nickname);
+		}
+		
+		return Map.of("message", "회원 정보가 변경되었습니다.");
+	}
+	
+	public Map<String, String> memberDelete(MemberRequest memberRequest) {
+		Member member = memberRepository.findByEmail(memberRequest.getEmail()).orElse(null);
+		if(member == null) return ErrorCode.NOT_FOUND_EMAIL.getResponse();
+		
+		// 멤버 삭제
+		memberRepository.delete(member);
+		
+		return Map.of("delete", "true");
 	}
 	
 }

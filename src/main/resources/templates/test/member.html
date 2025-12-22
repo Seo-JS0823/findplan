@@ -16,6 +16,16 @@
 	<input type="text" id="login-email" placeholder="이메일"/>
 	<input type="text" id="login-password" placeholder="패스워드"/>
 	<button id="login">로그인 진행</button>
+	
+	<h1>회원정보 수정 테스트</h1>
+	<input type="text" id="update-email" placeholder="이메일"/>
+	<input type="text" id="update-password" placeholder="패스워드"/>
+	<input type="text" id="update-nickname" placeholder="닉네임"/>
+	<button id="update">회원정보 수정</button>
+	
+	<h1>회원탈퇴 테스트</h1>
+	<input type="text" id="delete-email" placeholder="이메일"/>
+	<button id="delete">회원탈퇴</button>
 <script>
 	// 테스트 편의 유틸 함수
 	const addEvent = (id, event, callback) => {
@@ -25,6 +35,26 @@
 	const getValue = (id) => {
 		return document.getElementById(id).value;
 	}
+	
+	// 회원탈퇴 테스트
+	addEvent('delete', 'click', () => {
+		const member = {
+			'email':getValue('delete-email')
+		}
+		const url = '/test/api/member/delete';
+		const request = {
+			credentials: 'include',
+			method: 'DELETE',
+			headers: {
+				'Content-Type':'application/json'
+			},
+			body: JSON.stringify(member)
+		}
+		
+		fetch(url, request)
+		.then(response => response.json())
+		.then(data => console.log(data));
+	});
 	
 	// 회원가입 테스트
 	addEvent('signin', 'click', () => {
@@ -59,6 +89,27 @@
 			headers: { 'Content-Type':'application/json' },
 			body: JSON.stringify(member)
 		}
+		
+		fetch(url, request)
+		.then(response => response.json())
+		.then(data => console.log(data))
+		.catch(err => alert(err.message));
+	});
+	
+	// 회원정보 수정 테스트
+	addEvent('update', 'click', () => {
+		const member = {
+			'email':getValue('update-email'),
+			'password':getValue('update-password'),
+			'nickname':getValue('update-nickname')
+		};
+		const url = '/test/api/member/update';
+		const request = {
+			credentials: 'include',
+			method: 'PATCH',
+			headers: { 'Content-Type':'application/json' },
+			body: JSON.stringify(member)
+		};
 		
 		fetch(url, request)
 		.then(response => response.json())

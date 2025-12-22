@@ -9,7 +9,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.findplan.utility.CookieName;
-import com.findplan.utility.CookieParser;
+import com.findplan.utility.CookieUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +25,7 @@ public class JwtFilter extends OncePerRequestFilter {
 	private final MemberDetailsService memberDetailsService;
 	
 	private String getToken(HttpServletRequest request) {
-		return CookieParser.getCookieValue(request, CookieName.AUTHORIZATION);
+		return CookieUtil.getCookieValue(request, CookieName.AUTHORIZATION);
 	}
 	
 	@Override

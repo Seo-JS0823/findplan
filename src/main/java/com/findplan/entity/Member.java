@@ -4,8 +4,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +27,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE member SET deleted = 'Y' WHERE code = ?")
+@SQLRestriction("deleted = 'N'")
 public class Member {
 
 	@Id
@@ -44,8 +50,19 @@ public class Member {
 	@Column(name = "role", nullable = false)
 	private String role;
 	
+	@Convert(converter = BooleanToYNConverter.class)
+	private Boolean deleted = false;
+	
 	@Builder.Default
 	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MemberDevice> memberDevices = new ArrayList<>();
+	
+	public void updatePassword(String password) {
+		this.password = password;
+	}
+	
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
+	}
 	
 }
