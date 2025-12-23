@@ -12,38 +12,60 @@
 	<input type="text" id="signin-nickname" placeholder="닉네임"/>
 	<button id="signin">회원가입 진행</button>
 	
+	<h1>로그인 테스트</h1>
+	<input type="text" id="login-email" placeholder="이메일"/>
+	<input type="text" id="login-password" placeholder="패스워드"/>
+	<button id="login">로그인 진행</button>
+	
 <script>
-	// 테스트 유틸 함수
-	const test = (id, url, body, method, callback) => document.getElementById(id).addEventListener('click', () => {
-		fetch(url, {
-			credentials:'include',
-			method: method,
+	document.getElementById('signin').addEventListener('click', () => {
+		const email = document.getElementById('signin-email').value;
+		const password = document.getElementById('signin-password').value;
+		const nickname = document.getElementById('signin-nickname').value;
+		
+		const member = {
+			email:email,
+			password:password,
+			nickname:nickname
+		}
+		
+		const url = '/signin'; const request = {
+			credentials: 'include',
+			method:'POST',
 			headers: {
 				'Content-Type':'application/json'
 			},
-			body: JSON.stringify(body)
-		})
+			body:JSON.stringify(member)
+		};
+		
+		fetch(url, request)
 		.then(response => response.json())
-		.then(data => {
-			if(data.success === true) callback(data)
-			else if(data.success === false) {
-				console.log(data.errorMessage);
-			}
-		})
-	});
+		.then(data => console.log(data))
+	})
 	
-	const getValue = (id) => { return document.getElementById(id).value; }
+	document.getElementById('login').addEventListener('click', () => {
+		const email = document.getElementById('login-email').value;
+		const password = document.getElementById('login-password').value;
+		
+		const member = {
+			email:email,
+			password:password
+		}
+		
+		const url = '/login'; const request = {
+			credentials: 'include',
+			method:'POST',
+			headers: {
+				'Content-Type':'application/json'
+			},
+			body:JSON.stringify(member)
+		};
+		
+		fetch(url, request)
+		.then(response => response.json())
+		.then(data => console.log(data))
+	})
 	
-	test('signin',
-		'/signin',
-		{
-			'email':getValue('signin-email'),
-			'password':getValue('signin-password'),
-			'nickname':getValue('signin-nickname')
-		},
-		'POST',
-		(data) => console.log(data)
-	);
 </script>
 </body>
 </html>

@@ -1,7 +1,10 @@
 package com.findplan.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,7 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,13 +31,13 @@ public class Member {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long code;
 	
-	@Column(name = "email", unique = true, length = 50, updatable = false)
+	@Column(name = "email", unique = true, length = 50, updatable = false, nullable = false)
 	private String email;
 	
 	@Column(name = "password", length = 300, nullable = false)
 	private String password;
 	
-	@Column(name = "nickname", length = 10, unique = true)
+	@Column(name = "nickname", length = 10, unique = true, nullable = false)
 	private String nickname;
 	
 	@Column(name = "signin_date", nullable = false, updatable = false)
@@ -43,5 +46,9 @@ public class Member {
 	@Column(name = "role", nullable = false, length = 20)
 	@Enumerated(EnumType.STRING)
 	private Role role;
+	
+	@Builder.Default
+	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Device> devices = new ArrayList<>();
 	
 }

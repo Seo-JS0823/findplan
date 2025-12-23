@@ -28,6 +28,7 @@ public class SecurityConfig {
 		http
 		.csrf(AbstractHttpConfigurer::disable)
 		.cors(AbstractHttpConfigurer::disable)
+		.headers(headers -> headers.frameOptions(frame -> frame.disable()))
 		.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.formLogin(AbstractHttpConfigurer::disable)
 		.httpBasic(AbstractHttpConfigurer::disable)

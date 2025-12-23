@@ -1,27 +1,18 @@
 package com.findplan.entity;
 
+import java.util.List;
+
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public enum Role {
-	MEMBER("ROLE_MEMBER"),
-	FIND("ROLE_MEMBER,ROLE_FIND");
+	MEMBER(List.of("ROLE_MEMBER")),
+	FIND(List.of("ROLE_MEMBER", "ROLE_FIND"));
 	
-	private final String roles;
+	private final List<String> roles;
 	
-	public static String getIncludingRoles(String role) {
-		return Role.valueOf(role).getRoles();
+	Role(List<String> roles) {
+		this.roles = roles;
 	}
 	
-	public static String addRole(Role role, String addRole) {
-		String priorRoles = role.getRoles();
-		priorRoles += "," + addRole;
-		return priorRoles;
-	}
-	
-	public static String addRole(String roles, Role role) {
-		return roles + "," + role.getRoles();
-	}
 }
