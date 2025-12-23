@@ -6,6 +6,44 @@
 	<title>Member TEST</title>
 </head>
 <body>
-	<h1>Member TEST</h1>
+	<h1>회원가입 테스트</h1>
+	<input type="text" id="signin-email" placeholder="이메일"/>
+	<input type="text" id="signin-password" placeholder="패스워드"/>
+	<input type="text" id="signin-nickname" placeholder="닉네임"/>
+	<button id="signin">회원가입 진행</button>
+	
+<script>
+	// 테스트 유틸 함수
+	const test = (id, url, body, method, callback) => document.getElementById(id).addEventListener('click', () => {
+		fetch(url, {
+			credentials:'include',
+			method: method,
+			headers: {
+				'Content-Type':'application/json'
+			},
+			body: JSON.stringify(body)
+		})
+		.then(response => response.json())
+		.then(data => {
+			if(data.success === true) callback(data)
+			else if(data.success === false) {
+				console.log(data.errorMessage);
+			}
+		})
+	});
+	
+	const getValue = (id) => { return document.getElementById(id).value; }
+	
+	test('signin',
+		'/signin',
+		{
+			'email':getValue('signin-email'),
+			'password':getValue('signin-password'),
+			'nickname':getValue('signin-nickname')
+		},
+		'POST',
+		(data) => console.log(data)
+	);
+</script>
 </body>
 </html>
