@@ -51,4 +51,12 @@ public class Member {
 	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Device> devices = new ArrayList<>();
 	
+	public void updatePassword(String password) {
+		this.password = password;
+	}
+	
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
+	}
+	
 }

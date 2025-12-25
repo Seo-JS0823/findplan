@@ -20,6 +20,8 @@ public class MemberDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Member member = memberRepository.findByEmail(username);
 		
+		System.out.println("컨텍스트에 들어간 Member Email : " + member.getEmail());
+		
 		return new MemberDetails(member);
 	}
 

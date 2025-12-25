@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +18,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "DEVICE")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Device {
 
 	@Id
@@ -32,7 +36,7 @@ public class Device {
 	@Column(name = "device_name", nullable = false)
 	private String deviceName;
 	
-	@Column(name = "refresh_token", nullable = false, length = 300)
+	@Column(name = "refresh_token", nullable = true, length = 300)
 	private String refreshToken;
 	
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -2,8 +2,6 @@ package com.findplan.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -11,6 +9,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.findplan.auth.JwtFilter;
+import com.findplan.auth.JwtTokenProvider;
+import com.findplan.auth.MemberDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,11 +22,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 	
-	private final AuthenticationConfiguration authenticationConfiguration;
+	private final JwtTokenProvider jwtTokenProvider;
+	
+	private final MemberDetailsService memberDetailsService;
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		AuthenticationManager authenticationManager = authenticationManager(authenticationConfiguration);
 		
 		http
 		.csrf(AbstractHttpConfigurer::disable)
@@ -34,15 +38,15 @@ public class SecurityConfig {
 		.httpBasic(AbstractHttpConfigurer::disable)
 		.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/**").permitAll()
-				.anyRequest().authenticated());
+				.anyRequest().authenticated())
+		.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 		
 		return http.build();
 	}
-
+	
 	@Bean
-	AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration2) {
-		// TODO Auto-generated method stub
-		return null;
+	JwtFilter jwtFilter() {
+		return new JwtFilter(jwtTokenProvider, memberDetailsService);
 	}
 	
 	@Bean

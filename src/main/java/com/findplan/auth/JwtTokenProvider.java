@@ -40,6 +40,8 @@ public class JwtTokenProvider {
 	}
 	
 	public String getEmailFromToken(String token) {
+		if(token == null) return null;
+		
 		return Jwts.parser()
 				.verifyWith(key)
 				.build()

@@ -3,6 +3,7 @@ package com.findplan.controller.api;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,7 +62,11 @@ public class AuthApi {
 		}
 		
 		return new ResponseEntity<>(response, headers, HttpStatus.OK);
-		
+	}
+	
+	@PatchMapping("/update")
+	public ResponseEntity<GlobalResponse<?>> update(@RequestBody MemberRequest memberRequest, HttpServletRequest request) {
+		return ResponseEntity.ok(authService.memberInfoUpdate(memberRequest, request));
 	}
 	
 }
