@@ -45,4 +45,10 @@ public class CookieUtil {
 		return cookieResponse.toString();
 	}
 	
+	public static boolean containsCookie(CookieName cookie, HttpServletRequest request) {
+		if(CookieUtil.getCookieValue(cookie, request) == null) return false;
+		
+		return true;
+	}
+	
 }

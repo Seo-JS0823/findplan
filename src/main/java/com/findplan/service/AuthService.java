@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +41,8 @@ public class AuthService {
 	private final DeviceRepository deviceRepository;
 	
 	private final PasswordEncoder passwordEncoder;
+	
+	private final MemberService memberService;
 	
 	private final Parser uaParser;
 	
@@ -92,65 +93,36 @@ public class AuthService {
 	 * 로그인
 	 */
 	@Transactional
-	public GlobalResponse<?> login(HttpServletRequest request, MemberRequest memberRequest) {		
+	public GlobalResponse<?> login(HttpServletRequest request, MemberRequest memberRequest) {
+		// 요청 이메일과 패스워드로 일치성 검증
+		if(!memberService.loginEmailAndPasswordValidate(memberRequest)) return GlobalResponse.error(ErrorMessage.LOGIN_NOT_MATCH);
+		
 		// 이메일로 Member Entity 조회
-		String emailFromRequest = memberRequest.getEmail();
-		Member login = memberRepository.findByEmailWithDevices(emailFromRequest);
-		
-		// 존재하지 않는 이메일이면 ErrorResponse 응답
-		boolean existsLoginEmail = memberRepository.existsByEmail(emailFromRequest);
-		if(!existsLoginEmail) return GlobalResponse.error(ErrorMessage.LOGIN_EMAIL_NOT_MATCH);
-		
-		// 조회한 엔티티에서 가져온 EncodedPassword와 MemberRequest의 Password 비교
-		String passwordFromRequest = memberRequest.getPassword();
-		String passwordFromEntity = login.getPassword();
-		boolean existsPassword = passwordEncoder.matches(passwordFromRequest, passwordFromEntity);
-		
-		// 패스워드가 일치하지 않으면 ErrorResponse 응답
-		if(!existsPassword) return GlobalResponse.error(ErrorMessage.LOGIN_PASSWORD_NOT_MATCH);
+		Member login = memberService.getMember(memberRequest);
 		
 		// Member Entity 가 가지고 있는 Device List 가져오기
 		List<Device> devices = login.getDevices();
 		
-		// List<Device>가 하나라도 없으면 신규 기기 로그인 메서드로 분기
-		if(devices.size() == 0) return newLogin(request, login);
+		// List<Device>가 하나라도 없으면 신규 기기 로그인
+		if(devices.size() == 0) return newLogin(request, login, false);
 		
-		// HttpServletRequest로 쿠키에서 Device-ID 가져오기
+		// HttpServletRequest로 쿠키에서 Device-ID 존재 유무 확인
+		if(!CookieUtil.containsCookie(CookieName.DEVICE, request)) return newLogin(request, login, false);
+		
+		// 존재하면 가져오기
 		String deviceIdFromCookie = CookieUtil.getCookieValue(CookieName.DEVICE, request);
 		
-		// 쿠키에서 가져온 Device-ID가 null이면 신규 기기 로그인 메서드로 분기
-		if(deviceIdFromCookie == null) return newLogin(request, login);
-		
 		// 쿠키에서 가져온 DeviceID가 Device Entities 에 일치하는 레코드가 있는지 판단
-		Optional<Device> matchedDevice = devices.stream()
-				.filter(device -> device.getDeviceId().equals(deviceIdFromCookie))
-				.findFirst();
+		Device device = deviceIdSearch(devices, deviceIdFromCookie);
 		
-		// DeviceId가 일치하지 않으면 신규 기기 로그인 메서드로 분기
-		if(matchedDevice.isEmpty()) return newLogin(request, login);
+		// DeviceId가 없으면 신규 기기 로그인
+		if(device == null) return newLogin(request, login, false);
 		
-		// [1] 일치하는 Device Entity 1개 따로 변수에 저장
-		Device device = matchedDevice.get();
+		// DeviceId가 일치하는 경우 쿠키에서 RefreshToken 존재 유무 확인
+		if(!CookieUtil.containsCookie(CookieName.REFRESH_TOKEN, request)) return newLogin(request, login, true); 
 		
-		// DeviceId가 일치하는 경우 쿠키에서 RefreshToken 가져오기
-		String refreshTokenFromCookie = CookieUtil.getCookieValue(CookieName.REFRESH_TOKEN, request);
-
-		// 해당 RefreshToken과 DB에 저장된 RefreshToken이 일치한지 검사
-		boolean refreshTokenEquals = false;
-		
-		// RefreshToken이 쿠키에 없는 경우
-		boolean cookieFromRefreshToken = false;
-		if(refreshTokenFromCookie == null) cookieFromRefreshToken = true;
-		
-		if(device.getRefreshToken().equals(refreshTokenFromCookie)) refreshTokenEquals = true;
-		
-		// RefreshToken이 일치하지 않으면 해당 RefreshToken에서 Email 추출
-		if(!refreshTokenEquals && !cookieFromRefreshToken) {
-			String emailFromRefreshToken = jwtTokenProvider.getEmailFromToken(refreshTokenFromCookie);
-			
-			// Member Entity의 Email과 Token에서 추출한 Email이 동일하지 않을 때 실행
-			if(!login.getEmail().equals(emailFromRefreshToken)) return attacker(login);
-		}
+		// Device RefreshToken과 Cookie RefreshToken 일치성 확인
+		if(!refreshTokenAndDbValid(CookieName.REFRESH_TOKEN, request, device)) return attacker(login, request);
 		
 		// Token Email과 Member Entity Email이 동일하면 새 RefreshToken 발급
 		String newRefreshToken = jwtTokenProvider.createToken(login.getEmail(), TokenType.REFRESH);
@@ -170,22 +142,53 @@ public class AuthService {
 		return GlobalResponse.successLocation(tokenResponse, "로그인 요청 성공", "/");
 	}
 	
-	private GlobalResponse<?> newLogin(HttpServletRequest request, Member member) {
-		// UserAgentParser 이용해서 HttpServletRequest 에서 User-Agent 정보 파싱
-		String userAgent = request.getHeader("User-Agent");
+	private boolean refreshTokenAndDbValid(CookieName cookie, HttpServletRequest request, Device device) {
+		String refreshTokenFromCookie = CookieUtil.getCookieValue(cookie, request);
+		String refreshTokenFromDevice = device.getRefreshToken();
 		
-		// HttpServletRequest 에서 IP 정보 가져오기
-		String ip = request.getRemoteAddr();
+		if(!refreshTokenFromCookie.equals(refreshTokenFromDevice)) return false;
 		
-		// 파싱한 내용 deviceName 변수에 저장
-		String deviceName = deviceInfo(userAgent);
+		return true;
+	}
+	
+	private Device deviceIdSearch(List<Device> devices, String deviceId) {
+		Optional<Device> matchedDevice = devices.stream()
+				.filter(device -> device.getDeviceId().equals(deviceId))
+				.findFirst();
 		
-		// DeviceId, AccessToken, RefreshToken 생성
-		String deviceId = UUID.randomUUID().toString();
-		String accessToken = jwtTokenProvider.createToken(member.getEmail(), TokenType.ACCESS);
+		if(matchedDevice.isEmpty()) return null;
+		
+		return matchedDevice.get();
+	}
+	
+	private GlobalResponse<?> newLogin(HttpServletRequest request, Member member, boolean isDeviceId) {
+		TokenResponse tokenResponse = null;
+		
 		String refreshToken = jwtTokenProvider.createToken(member.getEmail(), TokenType.REFRESH);
 		
-		// Device Entity 객체 생성
+		String accessToken = jwtTokenProvider.createToken(member.getEmail(), TokenType.ACCESS);
+		
+		if(isDeviceId) {
+			Device device = deviceRepository.findByDeviceId(CookieUtil.getCookieValue(CookieName.DEVICE, request));
+			
+			
+			device.updateRefreshToken(refreshToken);
+			
+			tokenResponse = TokenResponse.builder()
+					.refreshToken(refreshToken)
+					.accessToken(accessToken)
+					.build();
+			
+			return GlobalResponse.success(tokenResponse, "로그인 요청 성공");
+		}
+		
+		String ip = request.getRemoteAddr();
+		
+		// User-Agent 파싱 문자열
+		String deviceName = deviceInfo(request);
+		
+		String deviceId = UUID.randomUUID().toString();
+		
 		Device device = Device.builder()
 				.deviceId(deviceId)
 				.refreshToken(refreshToken)
@@ -194,10 +197,9 @@ public class AuthService {
 				.member(member)
 				.build();
 		
-		// DeviceRepository로 Device Entity 저장
 		deviceRepository.save(device);
 		
-		TokenResponse tokenResponse = TokenResponse.builder()
+		tokenResponse = TokenResponse.builder()
 				.accessToken(accessToken)
 				.refreshToken(refreshToken)
 				.deviceId(deviceId)
@@ -206,26 +208,21 @@ public class AuthService {
 		return GlobalResponse.success(tokenResponse, "로그인 요청 성공");
 	}
 	
-	private String deviceInfo(String userAgent) {
-		 Client c = uaParser.parse(userAgent);
-		 
-		 String model = mappingModel(c.device.family);
-		 
-		 String osName = c.os.family;
-		 
-		 String osMajor = Optional.ofNullable(c.os.major).orElse("?");
-		 
-		 return String.format("%s/%s_%s", model, osName, osMajor);
+	private String deviceInfo(HttpServletRequest request) {
+		String userAgent = request.getHeader("User-Agent");
+		Client c = uaParser.parse(userAgent);
+		String model = mappingModel(c.device.family);
+		String osName = c.os.family;
+		String osMajor = Optional.ofNullable(c.os.major).orElse("?");
+		return String.format("%s/%s_%s", model, osName, osMajor);
 	}
 	
 	private String mappingModel(String model) {
-		if(model.equals("Other")) {
-			return "Desktop";
-		}
+		if(model.equals("Other")) return "Desktop";
 		return model;
 	}
 	
-	private GlobalResponse<?> attacker(Member Entity) {
+	private GlobalResponse<?> attacker(Member Entity, HttpServletRequest request) {
 		// 위에서 조회한 Member Entity가 가진 RefreshToken 폐기 처리
 		
 		// Token에서 추출한 Email을 가진 Member Entity가 가진 RefreshToken 폐기 처리

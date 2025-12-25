@@ -6,7 +6,8 @@ public enum ErrorMessage {
 	NOT_FOUND_MEMBER("존재하지 않는 유저입니다."),
 	LOGIN_EMAIL_NOT_MATCH("존재하지 않는 아이디 입니다."),
 	LOGIN_PASSWORD_NOT_MATCH("비밀번호가 일치하지 않습니다."),
-	AUTH_NOT_MATCH("사용자의 권한이 적합하지 않습니다.");
+	AUTH_NOT_MATCH("사용자의 권한이 적합하지 않습니다."),
+	LOGIN_NOT_MATCH("아이디 또는 패스워드가 일치하지 않습니다.");
 	
 	private String message;
 	

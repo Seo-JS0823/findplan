@@ -7,5 +7,5 @@ import com.findplan.entity.Device;
 
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
-	
+	Device findByDeviceId(String deviceId);
 }
