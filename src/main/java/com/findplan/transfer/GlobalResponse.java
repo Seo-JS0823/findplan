@@ -1,11 +1,12 @@
 package com.findplan.transfer;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GlobalResponse<T> {
 
@@ -19,17 +20,6 @@ public class GlobalResponse<T> {
 	
 	private String location;
 	
-	private GlobalResponse(boolean success, T data, String message) {
-		this.success = success;
-		this.data = data;
-		this.message = message;
-	}
-	
-	private GlobalResponse(boolean success, String errorMessage) {
-		this.success = success;
-		this.errorMessage = errorMessage;
-	}
-	
 	private GlobalResponse(boolean success, T data, String message, String errorMessage, String location) {
 		this.success = success;
 		this.data = data;
@@ -38,44 +28,49 @@ public class GlobalResponse<T> {
 		this.location = location;
 	}
 	
-	// 요청 성공에 대한 공통 메시지 응답 + 데이터와 함께
+	// 성공 응답 : 응답 객체와 함께
 	public static <T> GlobalResponse<T> success(T data) {
-		return new GlobalResponse<>(true, data, "success");
+		return new GlobalResponse<>(true, data, "success", null, null);
 	}
 	
-	// 요청 성공에 대한 커스텀 메시지 응답 + 데이터와 함께
+	// 성공 응답 : 응답 객체와 전용 메시지와 함께
 	public static <T> GlobalResponse<T> success(T data, String message) {
-		return new GlobalResponse<>(true, data, message);
+		return new GlobalResponse<>(true, data, message, null, null);
 	}
 	
-	// 요청 성공에 대한 공통 메시지 응답 + 데이터 없음
+	// 성공 응답 : 기본 메시지
 	public static <T> GlobalResponse<T> success() {
-		return new GlobalResponse<>(true, null, "success");
+		return new GlobalResponse<>(true, null, "success", null, null);
 	}
 	
-	// 요청 성공에 대한 커스텀 메시지 응답 + 데이터 없음
+	// 성공 응답 : 전용 메시지만
 	public static <T> GlobalResponse<T> success(String message) {
-		return new GlobalResponse<>(true, null, message);
+		return new GlobalResponse<>(true, null, message, null, null);
 	}
 	
-	// 요청 성공시 Location Url 넣어서 응답
+	// 실패 응답 : 실패 시 전용 메시지만 
+	public static <T> GlobalResponse<T> error(String errorMessage) {
+		return new GlobalResponse<>(false, null, null, errorMessage, null);
+	}
+	
+	// 실패 응답 : 실패 시 전용 메시지와 redirect URL 함께
+	public static <T> GlobalResponse<T> errorLocation(String errorMessage, String location) {
+		return new GlobalResponse<>(false, null, null, errorMessage, location);
+	}
+	
+	// 성공 응답 : 응답 객체와 redirect URL 함께
+	public static <T> GlobalResponse<T> successLocation(T data, String location) {
+		return new GlobalResponse<>(true, data, "success", null, location);
+	}
+	
+	// 성공 응답 : 전용 메시지와 redirect URL 함께
 	public static <T> GlobalResponse<T> successLocation(String message, String location) {
 		return new GlobalResponse<>(true, null, message, null, location);
 	}
 	
-	// 요청 성공시 Location Url 과 데이터를 함께 넣어서 응답
+	// 성공 응답 : 응답 객체와 전용 메시지와 redirect URL 함께
 	public static <T> GlobalResponse<T> successLocation(T data, String message, String location) {
 		return new GlobalResponse<>(true, data, message, null, location);
-	}
-	
-	// 요청 실패에 대한 메시지 응답
-	public static <T> GlobalResponse<T> error(ErrorMessage error) {
-		return new GlobalResponse<>(false, error.getMessage());
-	}
-	
-	// 요청 실패에 대한 메시지 응답과 Location Url 넣어서 응답
-	public static <T> GlobalResponse<T> errorLocation(ErrorMessage error, String location) {
-		return new GlobalResponse<>(false, null, null, error.getMessage(), location);
 	}
 	
 }
