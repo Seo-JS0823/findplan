@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="/js/auth.js"></script>
+	<script src="/js/find-util.js"></script>
+	<title>Find Plan</title>
+</head>
+<body>
+	<h1>회원가입</h1>
+		<input type="text" id="s-id" placeholder="아이디"/>
+		<input type="password" id="s-pwd" placeholder="패스워드"/>
+		<input type="text" id="s-nickname" placeholder="닉네임"/>
+		<button id="signup">회원가입</button>
+	<h1>로그인</h1>
+		<input type="text" id="l-id" placeholder="아이디"/>
+		<input type="password" id="l-pwd" placeholder="패스워드"/>
+		<button id="login">로그인</button>
+<script>
+	// 회원가입 요청 이벤트 핸들러
+	FIND.id('signup').on('click', async () => {
+		const email = $.id('s-id').value;
+		const password = $.id('s-pwd').value;
+		const nickname = $.id('s-nickname').value;
+		
+		const member = {
+			email: email,
+			password: password,
+			nickname: nickname
+		}
+		
+		const res = await new FindFetchRequest('/api/member/signup').post().json(member).send();
+		console.log(res);
+	})
+	
+	// 로그인 요청 이벤트 핸들러
+	FIND.id('login').on('click', async () => {
+		const email = $.id('l-id').value;
+		const password = $.id('l-pwd').value;
+		
+		const member = {
+			email: email,
+			password: password
+		}
+		
+		const res = await new FindFetchRequest('/api/member/login').post().json(member).send();
+		console.log(res);
+	})
+</script>
+</body>
+</html>
