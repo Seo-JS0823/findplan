@@ -17,7 +17,53 @@
 		<input type="text" id="l-id" placeholder="아이디"/>
 		<input type="password" id="l-pwd" placeholder="패스워드"/>
 		<button id="login">로그인</button>
+	<h1>패스워드 변경</h1>
+		<input type="text" id="u-id" placeholder="아이디"/>
+		<input type="password" id="old-pwd" placeholder="기존 패스워드"/>
+		<input type="password" id="new-pwd" placeholder="변경 패스워드"/>
+		<button id="update">변경</button>
+	<h1>회원탈퇴</h1>
+		<input type="text" id="d-pwd" placeholder="비밀번호 확인"/>
+		<button id="delete">탈퇴</button>
+		
+	<h1>로그인 이력 조회</h1>
+		<button id="log-his">조회</button>
 <script>
+	// 로그인 이력 조회
+	FIND.id('log-his').on('click', async () => {
+		const res = await new FindFetchRequest(`/api/member/history/login`).authorization(auth.getToken()).send();
+		
+		if(res.success === true) console.log(res.data);
+	})
+
+	// 회원탈퇴
+	FIND.id('delete').on('click', async () => {
+		const password = $.id('d-pwd').value;
+		
+		const member = {
+			password: password
+		}
+		
+		const res = await new FindFetchRequest(`/api/member/delete`).delete().authorization(auth.getToken()).json(member).send();
+		console.log(res);
+	})
+
+	// 회원가입 이메일 중복 체크
+	FIND.id('s-id').on('input', debounce( async () => {
+		const email = $.id('s-id').value;
+		
+		const res = await new FindFetchRequest(`/api/member/dupli-e?e=${encodeURIComponent(email)}`).send();
+		console.log(res);
+	}))
+	
+	// 회원가입 닉네임 중복 체크
+	FIND.id('s-nickname').on('input', debounce( async () => {
+		const nickname = $.id('s-nickname').value;
+		
+		const res = await new FindFetchRequest(`/api/member/dupli-n?n=${encodeURIComponent(nickname)}`).send();
+		console.log(res);
+	}))
+
 	// 회원가입 요청 이벤트 핸들러
 	FIND.id('signup').on('click', async () => {
 		const email = $.id('s-id').value;
@@ -45,6 +91,24 @@
 		}
 		
 		const res = await new FindFetchRequest('/api/member/login').post().json(member).send();
+		console.log(res);
+		
+		if(res.success === true) auth.setToken(res.data.accessToken);
+	})
+	
+	// 사용자 업데이트
+	FIND.id('update').on('click', async () => {
+		const email = $.id('u-id').value;
+		const password = $.id('old-pwd').value;
+		const newPassword = $.id('new-pwd').value;
+		
+		const member = {
+			email: email,
+			password: password,
+			newPassword: newPassword
+		}
+		
+		const res = await new FindFetchRequest('/api/member/update').patch().authorization(auth.getToken()).json(member).send();
 		console.log(res);
 	})
 </script>

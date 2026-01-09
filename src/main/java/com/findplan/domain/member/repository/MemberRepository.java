@@ -10,9 +10,13 @@ import com.findplan.domain.member.model.MemberEntity;
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 	
-	@Query("SELECT m FROM MemberEntity m LEFT JOIN FETCH m.devices WHERE m.email = :email")
+	@Query(
+	"SELECT m FROM MemberEntity m LEFT JOIN FETCH m.devices d " +
+	" WHERE m.email = :email " +
+	" AND m.deleted = false ")
 	MemberEntity findByEmailWithDevices(@Param("email") String email);
 	
+	@Query("SELECT m FROM MemberEntity m WHERE m.deleted = false")
 	MemberEntity findByEmail(String email);
 	
 	boolean existsByEmail(String email);

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.findplan.domain.member.MemberRole;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -45,10 +45,13 @@ public class MemberEntity {
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "M_ROLE", nullable = false)
-	private MemberRole role;
+	private MemberRole roles;
 	
 	@Column(name = "M_CREATED_AT", nullable = false)
-	private LocalDateTime createAt;
+	private LocalDateTime createdAt;
+	
+	@Column(name = "M_DELETED", nullable = false)
+	private boolean deleted;
 	
 	@Builder.Default
 	@OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -57,6 +60,14 @@ public class MemberEntity {
 	public void addDevice(DeviceEntity device) {
 		devices.add(device);
 		device.setMember(this);
+	}
+	
+	public void updatePassword(PasswordEncoder encoder, String newPassword) {
+		this.password = encoder.encode(newPassword);
+	}
+	
+	public void withdraw() {
+		this.deleted = true;
 	}
 	
 }

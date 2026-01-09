@@ -5,15 +5,17 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import ua_parser.Client;
 import ua_parser.Parser;
 
-@RequiredArgsConstructor
 @Component
 public class UserAgentParser {
 
 	private final Parser parser;
+	
+	public UserAgentParser() {
+		this.parser = new Parser();
+	}
 	
 	public String getOs(HttpServletRequest request) {
 		Client c = init(request);

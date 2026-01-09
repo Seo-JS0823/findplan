@@ -20,7 +20,7 @@ public class MemberDetails implements UserDetails {
 	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return member.getRole().getRoles().stream()
+		return member.getRoles().getRoles().stream()
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 	}

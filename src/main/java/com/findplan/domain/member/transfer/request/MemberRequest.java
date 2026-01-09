@@ -1,11 +1,11 @@
-package com.findplan.domain.member.transfer;
+package com.findplan.domain.member.transfer.request;
 
 import java.time.LocalDateTime;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.findplan.domain.member.MemberRole;
 import com.findplan.domain.member.model.MemberEntity;
+import com.findplan.domain.member.model.MemberRole;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SignupRequest {
+public class MemberRequest {
 
 	private String email;
 	
@@ -26,13 +26,23 @@ public class SignupRequest {
 	
 	private String nickname;
 	
+	private String newPassword;
+	
 	public MemberEntity signupToEntity(PasswordEncoder passwordEncoder) {
 		return MemberEntity.builder()
 				.email(email)
 				.password(passwordEncoder.encode(password))
 				.nickname(nickname)
-				.createAt(LocalDateTime.now())
-				.role(MemberRole.MEMBER)
+				.createdAt(LocalDateTime.now())
+				.deleted(false)
+				.roles(MemberRole.MEMBER)
+				.build();
+	}
+	
+	public MemberEntity loginToEntity() {
+		return MemberEntity.builder()
+				.email(email)
+				.password(password)
 				.build();
 	}
 	

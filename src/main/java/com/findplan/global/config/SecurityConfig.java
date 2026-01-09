@@ -2,6 +2,7 @@ package com.findplan.global.config;
 
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -17,7 +19,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.findplan.domain.member.model.MemberRole;
 import com.findplan.global.auth.CsrfCookieFilter;
+import com.findplan.global.auth.JwtAuthenticationFilter;
+import com.findplan.global.auth.JwtTokenProvider;
+import com.findplan.global.auth.MemberDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +32,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+	private final JwtTokenProvider jwtTokenProvider;
+	
+	private final MemberDetailsService memberDetailsService;
+	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
@@ -47,8 +57,18 @@ public class SecurityConfig {
 			
 			.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
 			
+			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+			
 			.authorizeHttpRequests(auth -> auth
-					.requestMatchers("/**").permitAll()
+					// 정적 리소스
+					.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+					// 로그인, 회원가입
+					.requestMatchers("/", "/api/member/login", "/api/member/signup", "/h2-console/**", "/favicon.ico", "/error").permitAll()
+					// 회원가입 시 중복 체크
+					.requestMatchers("/api/member/dupli-e", "/api/member/dupli-n").permitAll()
+					
+					
+					.requestMatchers("/api/member/**").hasAnyAuthority(MemberRole.MEMBER.getRoles().toArray(new String[0]))
 					.anyRequest().authenticated());
 		
 		return http.build();
@@ -68,6 +88,11 @@ public class SecurityConfig {
 		source.registerCorsConfiguration("/**", config);
 		
 		return source;
+	}
+	
+	@Bean
+	JwtAuthenticationFilter jwtAuthenticationFilter() {
+		return new JwtAuthenticationFilter(jwtTokenProvider, memberDetailsService);
 	}
 	
 	@Bean

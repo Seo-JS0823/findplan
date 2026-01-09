@@ -1,4 +1,4 @@
-package com.findplan.domain.member;
+package com.findplan.domain.member.model;
 
 import java.util.List;
 

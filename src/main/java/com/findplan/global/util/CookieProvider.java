@@ -16,6 +16,12 @@ public class CookieProvider {
 		response.addHeader(HttpHeaders.SET_COOKIE, createCookie(cookieName, value));
 	}
 	
+	public void clearSecurityCookie(HttpServletResponse response) {
+		addCookie(CookieName.CLEAR_DEVICE, null, response);
+		addCookie(CookieName.CLEAR_DEVICE_REFRESH_PASS, null, response);
+		addCookie(CookieName.CLEAR_REFRESH, null, response);
+	}
+	
 	public String getCookieValue(CookieName cookieName, HttpServletRequest request) {
 		Cookie[] cookies = request.getCookies();
 		if(cookies == null) return null;
