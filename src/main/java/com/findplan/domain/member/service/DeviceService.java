@@ -16,14 +16,27 @@ import com.findplan.global.util.CookieProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DeviceService {
 	
 	private final CookieProvider cookieProvider;
 	
 	private final MemberRepository memberRepo;
+	
+	public DeviceEntity deviceIdContains(String deviceId, List<DeviceEntity> devices) {
+		DeviceEntity device = devices.stream()
+				.filter(d -> d.getDeviceId().equals(deviceId))
+				.findFirst()
+				.orElse(null);
+		
+		if(device == null) return null;
+		
+		return device;
+	}
 	
 	/*
 	 * 요청자의 DeviceId와 RefreshToken이 같은지 검사
@@ -53,12 +66,18 @@ public class DeviceService {
 	
 	private boolean deviceIdAndRefreshTokenValidateImpl(HttpServletRequest request) {
 		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		log.info("DRV 검사 요청자 {}", email);
 		
 		String deviceId = cookieProvider.getCookieValue(CookieName.DEVICE, request);
+		log.info("DRV Device Id {}", deviceId);
 		String refreshToken = cookieProvider.getCookieValue(CookieName.REFRESH, request);
+		log.info("DRV RefreshToken {}", refreshToken);
 		
 		MemberEntity member = memberRepo.findByEmailWithDevices(email);
-		if(member == null) return false;
+		if(member == null) {
+			log.info("멤버가 널이네!?");
+			return false;
+		}
 		
 		List<DeviceEntity> devices = member.getDevices();
 		
@@ -66,7 +85,10 @@ public class DeviceService {
 				.filter(d -> d.getDeviceId().equals(deviceId) && d.getRefreshToken().equals(refreshToken))
 				.findFirst()
 				.orElse(null);
-		if(device == null) return false;
+		if(device == null) {
+			log.info("디바이스 엔티티가 널이네!?");
+			return false;
+		}
 		
 		return true;
 	}

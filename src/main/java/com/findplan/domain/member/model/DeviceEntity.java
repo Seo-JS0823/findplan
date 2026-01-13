@@ -62,6 +62,10 @@ public class DeviceEntity {
 		this.refreshToken = refreshToken;
 	}
 	
+	public void initRefreshToken() {
+		this.refreshToken = "";
+	}
+	
 	public void updateOs(String os) {
 		this.os = os;
 	}

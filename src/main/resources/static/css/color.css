@@ -1,0 +1,18 @@
+:root {
+	--palettes-a-1: #7bdff2;
+	--palettes-a-2: #b2f7ef;
+	--palettes-a-3: #eff7f6;
+	--palettes-a-4: #f7d6e0;
+	--palettes-a-5: #f2b5d4;
+	
+	--palettes-b-1: #384d48;
+	--palettes-b-2: #6e7271;
+	--palettes-b-3: #acad94;
+	--palettes-b-4: #d8d4d5;
+	--palettes-b-5: #e2e2e2;
+	
+	--success-text: lightgreen;
+	--fail-text: red;
+	
+	--back: #000000;
+}

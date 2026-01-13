@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.findplan.global.auth.DeviceCheckInterceptor;
+import com.findplan.global.auth.interceptor.DeviceCheckInterceptor;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,9 +20,8 @@ public class WebConfig implements WebMvcConfigurer {
 			.addPathPatterns("/api/member/**")
 			.excludePathPatterns(
 				"/api/member/login", "/api/member/signup",
-				"/api/member/dupli-e", "/api/member/dupli-n"
-			);
-		
+				"/api/member/dupli-e", "/api/member/dupli-n", "/api/member/me", "/")
+			.order(1);
 	}
 	
 }

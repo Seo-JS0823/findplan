@@ -16,10 +16,19 @@ public class CookieProvider {
 		response.addHeader(HttpHeaders.SET_COOKIE, createCookie(cookieName, value));
 	}
 	
+	public void clearLogoutCookie(HttpServletResponse response) {
+		addCookie(CookieName.CLEAR_ACCESS, null, response);
+		addCookie(CookieName.CLEAR_DEVICE_REFRESH_PASS, null, response);
+		addCookie(CookieName.CLEAR_REMEMBER_ME_TOKEN, null, response);
+		addCookie(CookieName.CLEAR_REFRESH, null, response);
+	}
+	
 	public void clearSecurityCookie(HttpServletResponse response) {
 		addCookie(CookieName.CLEAR_DEVICE, null, response);
 		addCookie(CookieName.CLEAR_DEVICE_REFRESH_PASS, null, response);
 		addCookie(CookieName.CLEAR_REFRESH, null, response);
+		addCookie(CookieName.CLEAR_REMEMBER_ME_TOKEN, null, response);
+		addCookie(CookieName.CLEAR_ACCESS, null, response);
 	}
 	
 	public String getCookieValue(CookieName cookieName, HttpServletRequest request) {

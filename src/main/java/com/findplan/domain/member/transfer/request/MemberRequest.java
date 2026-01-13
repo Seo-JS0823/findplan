@@ -28,6 +28,9 @@ public class MemberRequest {
 	
 	private String newPassword;
 	
+	@Builder.Default
+	private boolean rememberMe = false;
+	
 	public MemberEntity signupToEntity(PasswordEncoder passwordEncoder) {
 		return MemberEntity.builder()
 				.email(email)

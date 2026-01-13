@@ -17,6 +17,10 @@ public class ApiResponse<T> {
 	
 	private final String redirectUrl;
 	
+	public static <T> ApiResponse<T> fail() {
+		return new ApiResponse<>(false, 200, "fail", null, null);
+	}
+	
 	public static <T> ApiResponse<T> success() {
 		return new ApiResponse<>(true, 200, "success", null, null);
 	}
@@ -43,6 +47,10 @@ public class ApiResponse<T> {
 	
 	public static <T> ApiResponse<T> error(int status, String message) {
 		return new ApiResponse<>(false, status, message, null, null);
+	}
+	
+	public static <T> ApiResponse<T> errorData(T data, int status, String message) {
+		return new ApiResponse<>(false, status, message, data, null);
 	}
 	
 	public static <T> ApiResponse<T> errorRedirect(int status, String message, String redirectUrl) {

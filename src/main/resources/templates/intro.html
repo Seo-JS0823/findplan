@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<!-- 구글 폰트 -->
+	<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Jua&display=swap" rel="stylesheet">
+	
+	<!-- 커스텀 스타일 시트 -->
+	<link rel="stylesheet" th:href="@{/css/color.css}">
+	<link rel="stylesheet" th:href="@{/css/reset.css}">
+	<link rel="stylesheet" th:href="@{/css/navbar.css}">
+	
+	<!-- 권한 스크립트 -->
+	<script th:src="@{/js/auth.js}"></script>
+	
+	<!-- 유틸 스크립트 -->
+	<script th:src="@{/js/find-util.js}"></script>
+	
+	<title>Find Plan</title>
+</head>
+<body>
+	<!-- Top Navigation Bar -->
+	<div th:replace="~{layouts/loginNotComplete :: navbarFragment}"></div>
+	
+	<h1>사이트 소개 페이지</h1>
+</body>
+</html>

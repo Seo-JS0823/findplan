@@ -35,15 +35,109 @@ public class MemberService {
 	
 	private final MemberRepository memberRepo;
 	
+	private final LoginHistoryRepository logHisRepo;
+	
 	private final PasswordEncoder passwordEncoder;
-	
-	private final JwtTokenProvider jwtTokenProvider;
-	
+		
 	private final UserAgentParser parser;
 	
 	private final CookieProvider cookieProvider;
 	
-	private final LoginHistoryRepository logHisRepo;
+	private final JwtTokenProvider jwtTokenProvider;
+	
+	private final DeviceService deviceService;
+	
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		// Authentication에서 email 가져오기
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		// DeviceId, Refresh Cookie 가져오기
+		String deviceId = cookieProvider.getCookieValue(CookieName.DEVICE, request);
+		System.out.println("로그아웃 디바이스 아이디 : " + deviceId);
+		String refreshToken = cookieProvider.getCookieValue(CookieName.REFRESH, request);
+		System.out.println("로그아웃 리프레시 토큰 : " + refreshToken);
+		
+		// DeviceId로 DeviceEntity 조회
+		MemberEntity member = memberRepo.findByEmail(email);
+		
+		List<DeviceEntity> devices = member.getDevices();
+		DeviceEntity device = deviceService.deviceIdContains(deviceId, devices);
+		if(device == null) {
+			cookieProvider.clearSecurityCookie(response);
+			System.out.println("여기냐?");
+			throw new GlobalException(ErrorCode.UN_BAD_AUTHORIZATION);
+		}
+		
+		if(!device.getRefreshToken().equals(refreshToken)) {
+			cookieProvider.clearSecurityCookie(response);
+			System.out.println("여긴가!?");
+			throw new GlobalException(ErrorCode.UN_BAD_AUTHORIZATION);
+		}
+		
+		device.initRefreshToken();
+		
+		cookieProvider.clearLogoutCookie(response);
+	}
+	
+	/*
+	 * 자동 로그인 체크 remember-me
+	 */
+	public boolean rememberMe(HttpServletRequest request, HttpServletResponse response) {
+		String rememberMeToken = cookieProvider.getCookieValue(CookieName.REMEMBER_ME_TOKEN, request);
+		if(rememberMeToken == null) return false;
+		
+		return true;
+	}
+	
+	public LoginResponse rememberMeLogin(HttpServletRequest request, HttpServletResponse response) {
+		// 사용자의 RefreshToken으로 email 가져오기
+		String email = jwtTokenProvider.getEmailFromToken(cookieProvider.getCookieValue(CookieName.REFRESH, request));
+		
+		// 해당 유저의 Device 리스트에 DeviceId 있는지 확인
+		String deviceId = cookieProvider.getCookieValue(CookieName.DEVICE, request);
+		
+		MemberEntity member = memberRepo.findByEmailWithDevices(email);
+		if(member == null) {
+			cookieProvider.clearSecurityCookie(response);
+			throw new GlobalException(ErrorCode.REMEMBER_ME_LOGIN_NOT_MATCHES);
+		}
+		
+		List<DeviceEntity> devices = member.getDevices();
+		
+		DeviceEntity device = deviceService.deviceIdContains(deviceId, devices);
+		
+		// 없으면 GlobalException
+		if(device == null) throw new GlobalException(ErrorCode.REMEMBER_ME_LOGIN_NOT_MATCHES);
+		
+		String accessToken = loginTokenAction(response, email, device);
+		
+		// 있으면 LoginResponse 응답
+		LoginResponse loginResponse = LoginResponse.builder()
+				.accessToken(accessToken)
+				.email(email)
+				.nickname(member.getNickname())
+				.build();
+		
+		logHisRepo.save(device.createLoginHistory());
+		
+		return loginResponse;
+	}
+	
+	/*
+	 * 로그인할 때 AccessToken 생성과 RefreshToken을 생성하고 DeviceEntity에 업데이트하며,
+	 * 생성한 AccessToken을 반환함
+	 */
+	private String loginTokenAction(HttpServletResponse response, String email, DeviceEntity device) {
+		String at = jwtTokenProvider.createToken(email, TokenType.ACCESS);
+		cookieProvider.addCookie(CookieName.ACCESS, at, response);
+		
+		String rt = jwtTokenProvider.createToken(email, TokenType.REFRESH);
+		cookieProvider.addCookie(CookieName.REFRESH, rt, response);
+		
+		device.updateRefreshToken(rt);
+		
+		return at;
+	}
 	
 	/*
 	 * 회원가입 로직
@@ -78,6 +172,16 @@ public class MemberService {
 		// Null 이면 내부에서 GlobalException 던짐
 		MemberEntity loginEntity = memberValidate(loginRequest.getEmail(), loginRequest.getPassword());
 		
+		// 탈퇴 처리중인 계정으로 로그인 했을 경우
+		if(loginEntity.isDeleted() == true) {
+			throw new GlobalException(ErrorCode.RETRACT_USER_LOGIN);
+		}
+		
+		// 자동 로그인 기능이 체크되어 있는 경우
+		if(loginRequest.isRememberMe() == true) {
+			cookieProvider.addCookie(CookieName.REMEMBER_ME_TOKEN, "1", response);
+		}
+		
 		// 클라이언트 요청에서 쿠키 (DeviceId) 가져오기
 		String deviceId = cookieProvider.getCookieValue(CookieName.DEVICE, request);
 		
@@ -88,6 +192,8 @@ public class MemberService {
 		
 		// AccessToken 발급
 		String accessToekn = jwtTokenProvider.createToken(loginEntity.getEmail(), TokenType.ACCESS);
+		
+		cookieProvider.addCookie(CookieName.ACCESS, accessToekn, response);
 		
 		return LoginResponse.builder()
 				.accessToken(accessToekn)
@@ -112,10 +218,7 @@ public class MemberService {
 		}
 		
 		// 요청 DeviceId 와 DeviceEntity 레코드 일치 확인
-		DeviceEntity device = devices.stream()
-			.filter(d -> d.getDeviceId().equals(deviceId) && d.isDeleted() == false)
-			.findFirst()
-			.orElse(null);
+		DeviceEntity device = deviceService.deviceIdContains(deviceId, devices);
 		
 		// 일치하는 디바이스 아이디가 없는 경우 새 기기 로그인으로 다시 분기
 		if(device == null) {

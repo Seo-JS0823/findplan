@@ -7,6 +7,8 @@ import com.findplan.domain.member.model.MemberEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,6 +44,7 @@ public class AccountEntity {
 	@Column(name = "BALANCE", nullable = false)
 	private Long balance;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(name = "TYPE", nullable = false)
 	private AccountType accountType;
 	

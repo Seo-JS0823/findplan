@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +21,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.findplan.domain.member.model.MemberRole;
-import com.findplan.global.auth.CsrfCookieFilter;
-import com.findplan.global.auth.JwtAuthenticationFilter;
 import com.findplan.global.auth.JwtTokenProvider;
 import com.findplan.global.auth.MemberDetailsService;
+import com.findplan.global.auth.filter.CsrfCookieFilter;
+import com.findplan.global.auth.filter.JwtAuthenticationFilter;
+import com.findplan.global.util.CookieProvider;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +37,8 @@ public class SecurityConfig {
 	private final JwtTokenProvider jwtTokenProvider;
 	
 	private final MemberDetailsService memberDetailsService;
+	
+	private final CookieProvider cookieProvider;
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -65,10 +69,9 @@ public class SecurityConfig {
 					// 로그인, 회원가입
 					.requestMatchers("/", "/api/member/login", "/api/member/signup", "/h2-console/**", "/favicon.ico", "/error").permitAll()
 					// 회원가입 시 중복 체크
-					.requestMatchers("/api/member/dupli-e", "/api/member/dupli-n").permitAll()
+					.requestMatchers("/api/member/dupli-e", "/api/member/dupli-n", "/api/member/me", "/api/member/logout").permitAll()
 					
-					
-					.requestMatchers("/api/member/**").hasAnyAuthority(MemberRole.MEMBER.getRoles().toArray(new String[0]))
+					.requestMatchers("/api/member/**", "/main").hasAnyAuthority(MemberRole.MEMBER.getRoles().toArray(new String[0]))
 					.anyRequest().authenticated());
 		
 		return http.build();
@@ -91,8 +94,14 @@ public class SecurityConfig {
 	}
 	
 	@Bean
+	WebSecurityCustomizer webSecurityCustomizer() {
+		return (web) -> web.ignoring()
+				.requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error", "/.well-known/**");
+	}
+	
+	@Bean
 	JwtAuthenticationFilter jwtAuthenticationFilter() {
-		return new JwtAuthenticationFilter(jwtTokenProvider, memberDetailsService);
+		return new JwtAuthenticationFilter(jwtTokenProvider, memberDetailsService, cookieProvider);
 	}
 	
 	@Bean

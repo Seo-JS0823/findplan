@@ -12,8 +12,7 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 	
 	@Query(
 	"SELECT m FROM MemberEntity m LEFT JOIN FETCH m.devices d " +
-	" WHERE m.email = :email " +
-	" AND m.deleted = false ")
+	" WHERE m.email = :email")
 	MemberEntity findByEmailWithDevices(@Param("email") String email);
 	
 	@Query("SELECT m FROM MemberEntity m WHERE m.deleted = false")

@@ -1,4 +1,4 @@
-package com.findplan.global.auth;
+package com.findplan.global.auth.filter;
 
 import java.io.IOException;
 

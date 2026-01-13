@@ -1,4 +1,4 @@
-package com.findplan.global.auth;
+package com.findplan.global.auth.interceptor;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;

@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/css/navbar.css">
 	<script src="/js/auth.js"></script>
 	<script src="/js/find-util.js"></script>
 	<title>Find Plan</title>
@@ -94,6 +95,14 @@
 		console.log(res);
 		
 		if(res.success === true) auth.setToken(res.data.accessToken);
+		
+		if(res.data === 'RETRACT_USER_LOGIN') {
+			if(confirm('탈퇴 처리중인 계정입니다. 철회하시겠습니까?')) {
+				alert('철회짜응');
+			} else {
+				return;
+			}
+		}
 	})
 	
 	// 사용자 업데이트

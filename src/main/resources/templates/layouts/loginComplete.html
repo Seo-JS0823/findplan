@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<nav class="find-nav-container" th:fragment="loginCompleteFragment">
+	<div class="nav-box">
+		<a class="nav-link" href="/">Find Plan</a>
+		<a class="nav-link" href="/">가계부</a>
+		<a class="nav-link" href="/">게시판</a>
+	</div>
+	<div class="nav-box" id="my-info-box">
+		<button id="mypage">마이페이지</button>
+		<button id="logout">로그아웃</button>
+	</div>
+	
+<script th:src="@{/js/loginComplete.js}"></script>
+</nav>
+</html>

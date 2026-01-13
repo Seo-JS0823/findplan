@@ -1,0 +1,190 @@
+.find-nav-container {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	height: 6rem;
+	background-color: var(--palettes-a-3);
+	font-family: "Jua";
+	font-size: 2.5rem;
+	padding: 0 20rem;
+	white-space: nowrap;
+	text-shadow: 0 0 3px #aaa;
+}
+.nav-box {
+	width: auto;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+}
+.nav-link {
+	color: #333;
+}
+.nav-link-btn {
+	cursor: pointer;
+	color: white;
+	outline: none;
+	border: none;
+	background: none;
+	font-size: 1.5rem;
+	font-weight: bolder;
+	text-shadow: 0 0 3px #aaa;
+	color: #333;
+}
+.nav-link-btn:hover {
+	transform: scale(1.05);
+}
+
+/* Login Modal Style */
+.login-box {
+	position: fixed;
+	width: 30rem;
+	max-width: 90vw;
+	height: auto;
+	max-height: 90vh;
+	background-color: white;
+	border-radius: 10px;
+	box-shadow: 0 0 3px rgba(33, 33, 33, 0.2);
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	overflow-y: auto;
+	display: none;
+	flex-direction: column;
+	padding: 1rem;
+}
+.login-box-hr {
+	width: 100%;
+	height: 1px;
+	background: #ccc;
+	border: none;
+	margin: 1rem 0;
+}
+.open-b {
+	display: block;
+}
+.open-f {
+	display: flex;
+}
+
+.login-box-top { width: 100%; height: 20%; }
+.login-box-mid { width: 100%; height: auto; }
+.login-box-bottom { width: 100%; height: auto; }
+
+.login-box-top .logo-box {
+	width: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+}
+.login-box-top .logo {
+	width: 6rem;
+	height: 6rem;
+	background: linear-gradient(135deg, var(--palettes-a-1), var(--palettes-a-3), var(--palettes-a-5));
+	background-size: 500%;
+	background-position: center;
+	text-align: center;
+	align-content: center;
+	font-size: 1.5rem;
+}
+.login-box-top .logo-descript {
+	width: calc(100% - 6rem);
+	height: 6rem;
+	font-size: 2rem;
+	font-family: "Gamja Flower";
+	text-shadow: 0 0 1px white;
+	text-align: center;
+	align-content: center;
+}
+
+.login-input-box {
+	display: flex;
+	flex-direction: column;
+}
+.login-input-box .input-group {
+	position: relative;
+	width: 100%;
+	height: auto;
+	margin-top: 10px;
+	margin-bottom: 3px;
+}
+.login-input-box .input-group .input-field {
+	width: 100%;
+	height: 4rem;
+	padding: 0 1rem;
+	border: 1px solid #dadce0;
+	border-radius: 10px;
+	outline: none;
+	font-size: 1rem;
+	transition: border-color 0.2s;
+}
+.login-input-box .input-group .input-label {
+	position: absolute;
+	left: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: white;
+	color: #80868b;
+	font-size: 1.5rem;
+	margin-left: 10px;
+	transition: all 0.2s;
+	pointer-events: none;
+}
+.input-field:focus + .input-label,
+.input-field:not(:placeholder-shown) + .input-label {
+    top: 0;
+    margin-left: 15px;
+    padding: 0 10px;
+    font-size: 1.3rem;
+    color: var(--palettes-a-5); /* 구글 특유의 파란색 */
+}
+
+.login-checked {
+	width: 100%;
+	height: auto;
+	display: flex;
+	align-items: center;
+}
+.login-checked label {
+	margin-bottom: 3px;
+	font-size: 1.2rem;
+	font-family: sans-serif;
+	font-weight: normal;
+}
+.login-btn {
+	width: 100%;
+	height: 2.5rem;
+	margin-top: 20px;
+	outline: none;
+	border: none;
+	border-radius: 4px;
+	font-size: 1.2rem;
+	background-color: var(--palettes-a-3);
+}
+.valid {
+	width: 100%;
+	height: 1rem;
+	padding-left: 10px;
+	font-size: 0.9rem;
+}
+
+@media(width <= 1000px) {
+	.find-nav-container {
+		padding: 0 1.5rem;
+	}
+}
+
+@media(width <= 480px) {
+	html {
+		font-size: 7px;
+	}
+	.login-box {
+		width: 80%;
+	}
+}
+
+/* ================= */

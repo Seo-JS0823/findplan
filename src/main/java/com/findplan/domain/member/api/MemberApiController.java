@@ -3,6 +3,7 @@ package com.findplan.domain.member.api;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -49,7 +50,29 @@ public class MemberApiController {
 		
 		LoginResponse loginResponse = memberService.login(loginRequest, request, response);
 		
-		return ResponseEntity.ok(ApiResponse.success(loginResponse));
+		return ResponseEntity.ok(ApiResponse.successRedirect(loginResponse, "/main"));
+	}
+	
+	@GetMapping("/logout")
+	public ResponseEntity<ApiResponse<?>> logoutResponse(HttpServletRequest request, HttpServletResponse response) {
+		memberService.logout(request, response);
+		System.out.println("요청 잘 되었쑤!");
+		return ResponseEntity.ok(ApiResponse.successRedirect("/"));
+	}
+	
+	@PostMapping("/me")
+	public ResponseEntity<ApiResponse<?>> rememberMeResponse(
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		
+		// 자동 로그인 토큰이 없는 경우 fail 응답
+		if(!memberService.rememberMe(request, response)) {
+			return ResponseEntity.ok(ApiResponse.fail());
+		}
+		
+		LoginResponse loginResponse = memberService.rememberMeLogin(request, response);
+		
+		return ResponseEntity.ok(ApiResponse.successRedirect(loginResponse, "/main"));
 	}
 	
 	@GetMapping("/dupli-e")

@@ -13,8 +13,10 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class JwtTokenProvider {
 
 	private final SecretKey key;
@@ -41,11 +43,12 @@ public class JwtTokenProvider {
 			Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
 			return true;
 		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-			System.out.println("잘못된 JWT 서명입니다. : " + e.getMessage());
+			
+			log.warn("왜 먼데 대 체 왜1: {}", e.getMessage());
 	  } catch (ExpiredJwtException e) {
-	  	System.out.println("만료된 JWT Token: " + e.getMessage());
+	  	log.warn("왜 먼데 대 체 왜2: {}", e.getMessage());
 	  } catch (UnsupportedJwtException e) {
-	  	System.out.println("지원하지 않는 JWT Token: " + e.getMessage());
+	  	log.warn("왜 먼데 대 체 왜3: {}", e.getMessage());
 	  }
 		return false;
 	}
